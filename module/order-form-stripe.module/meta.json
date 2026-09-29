@@ -1,0 +1,10 @@
+{
+  "label": "Order Form (Stripe)",
+  "css_assets": [],
+  "external_js": [],
+  "global": false,
+  "help_text": "Paste the Stripe Payment Link (buy.stripe.com/... or your checkout domain), not a dashboard.stripe.com URL. The link's confirmation behavior must be 'redirect'.",
+  "host_template_types": ["PAGE"],
+  "content_types": ["LANDING_PAGE", "SITE_PAGE"],
+  "is_available_for_new_content": true
+}

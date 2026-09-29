@@ -1,0 +1,249 @@
+/*
+  module.css -- Order Form (Stripe)
+  ----------------------------------------------------------------------------
+  Author:  Jibril Sulaiman
+  Created: 2026-09-28 (from a production build first shipped 2026-09-04)
+  Deploy:  HubSpot Design Manager > your "Order Form (Stripe)" module > module.css.
+
+  What: two step tabs ("Your info" / "Checkout"), the embedded HubSpot form,
+  the checkout panel and the TEST MODE banner. Everything is scoped to .eof so
+  it can't leak into other forms on the page.
+
+  Theming: change the five --eof-* variables in the first block. The --hsf-* and
+  --hsElevate-* variables style HubSpot's newer form renderers; the plain
+  selectors further down style the legacy renderer. Both are needed because a
+  page can use either kind of form.
+
+  Why the explicit borders: many themes set form input borders to 0, which makes
+  fields invisible on a white panel.
+*/
+.eof {
+  /* ---- theme: change these ---- */
+  --eof-accent:       #2563EB;   /* tabs, field borders */
+  --eof-focus:        rgba(37, 99, 235, 0.15);
+  --eof-button:       #F59E0B;   /* submit + pay buttons */
+  --eof-button-hover: #D97706;
+  --eof-button-text:  #111827;
+  --eof-warn-border:  #F59E0B;
+  --eof-tint:         var(--eof-accent);
+
+  max-width: 750px;
+  margin: 0 auto;
+
+  --hsf-row__vertical-spacing:    12px;
+  --hsf-row__horizontal-spacing:  12px;
+  --hsf-module__vertical-spacing: 4px;
+
+  --hsf-field-label__font-size: 13px;
+  --hsf-field-label__color:     #17263A;
+
+  --hsf-field-input__background-color:  #FFFFFF;
+  --hsf-field-input__border-color:      var(--eof-accent);
+  --hsf-field-input__border-width:      1px;
+  --hsf-field-input__border-radius:     8px;
+  --hsf-field-input__color:             #000000;
+  --hsf-field-input__padding:           8px 12px;
+  --hsf-field-input__placeholder-color: #757575;
+  --hsf-field-textarea__background-color: #FFFFFF;
+  --hsf-field-textarea__border-color:   var(--eof-accent);
+  --hsf-field-textarea__border-radius:  8px;
+
+  --hsf-button__background-color: var(--eof-button);
+  --hsf-button__background-image: none;
+  --hsf-button__color:            var(--eof-button-text);
+  --hsf-button__border-color:     transparent;
+  --hsf-button__border-width:     0px;
+  --hsf-button__border-radius:    8px;
+  --hsf-button__font-size:        16px;
+  --hsf-button__font-weight:      700;
+  --hsf-button__padding:          8px 16px;
+  --hsf-button__width:            100%;
+  --hsf-button--hover__background-color: var(--eof-button-hover);
+  --hsf-button--hover__color:            var(--eof-button-text);
+  --hsf-button--hover__border-color:     transparent;
+  --hsf-background__padding:      0;
+  --hsf-background__border-width: 0;
+
+  --hsElevate--formLabel__fontSize:        13px;
+  --hsElevate--formLabel__marginBottom:    4px;
+  --hsElevate--formField__marginBottom:    12px;
+  --hsElevate--formField__borderRadius:    8px;
+  --hsElevate--formField__backgroundColor: #FFFFFF;
+  --hsElevate--formField__borderColor:     var(--eof-accent);
+}
+
+.eof__test {
+  background: #FFC107; color: #3A2E00;
+  border: 2px solid #C79100; border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 12px 16px; margin: 0;
+  font-size: 14px; font-weight: 600; line-height: 1.4; text-align: center;
+}
+.eof__test strong { letter-spacing: .08em; }
+
+.eof .eof__tabs { display: flex; gap: 6px; align-items: flex-end; }
+
+.eof .eof__tab {
+  box-sizing: border-box;
+  flex: 1;
+  padding: 18px 12px;
+  border-radius: 12px 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-align: center;
+  position: relative;
+}
+
+.eof .eof__tab--current {
+  background: var(--eof-tint);
+  color: #FFFFFF;
+  height: 56px;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eof .eof__tab--done { background: var(--eof-accent); color: #FFFFFF; }
+.eof .eof__tab--locked { background: #F5F5F5; color: var(--eof-accent); }
+
+.eof .eof__tab--current::after {
+  content: ""; position: absolute; left: 50%; bottom: -9px;
+  transform: translateX(-50%);
+  border-left: 10px solid transparent; border-right: 10px solid transparent;
+  border-top: 10px solid var(--eof-tint);
+}
+
+.eof--test .eof__tab { border-radius: 0; }
+
+.eof .eof__panel {
+  background: #FFFFFF;
+  border: 1px solid #E5E9F0;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  padding: 24px;
+}
+.eof--step2 .eof__panel { display: none; }
+
+.eof .eof__checkout {
+  display: none;
+  background: #FFFFFF;
+  border: 1px solid #E5E9F0;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  padding: 24px;
+}
+.eof--step2 .eof__checkout { display: block; }
+
+.eof .eof__redirect { text-align: center; font-size: 16px; color: #5B6B7C; }
+.eof .eof__redirect[hidden] { display: none; }
+
+.eof .eof__warn {
+  background: #FFF4E5; border: 1px solid var(--eof-warn-border); color: #8A4B2A;
+  padding: 12px 16px; font-weight: 600;
+}
+
+.eof .eof__panel input[type="text"],
+.eof .eof__panel input[type="email"],
+.eof .eof__panel input[type="tel"],
+.eof .eof__panel input[type="number"],
+.eof .eof__panel input[type="url"],
+.eof .eof__panel select,
+.eof .eof__panel textarea {
+  background: #FFFFFF;
+  border: 1px solid var(--eof-accent);
+  border-radius: 8px;
+  color: #000000;
+  font-size: 14px;
+  line-height: 1.8;
+  padding: 8px 12px;
+  height: auto;
+  min-height: 0;
+}
+
+.eof .eof__panel input::placeholder,
+.eof .eof__panel textarea::placeholder {
+  color: #757575;
+  opacity: 1;
+}
+
+.eof .eof__panel input:focus,
+.eof .eof__panel select:focus {
+  border-color: var(--eof-accent);
+  box-shadow: 0 0 0 2px var(--eof-focus);
+}
+
+.eof .eof__panel .hs-fieldtype-intl-phone select,
+.eof .eof__panel [class*="phone"] select {
+  background: #FFFFFF;
+  border: 1px solid var(--eof-accent);
+  border-radius: 8px;
+}
+
+.eof .eof__panel label,
+.eof .eof__panel .hs-form-field > label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 4px;
+}
+
+.eof .eof__panel .hs-form-field,
+.eof .eof__panel .hs-form-field.field {
+  margin: 0 0 12px;
+}
+
+.eof .eof__panel .hs_submit,
+.eof .eof__panel .hs_submit .actions {
+  margin-top: 4px;
+  padding: 0;
+}
+
+.eof .eof__panel form .hs-button,
+.eof .eof__panel form input[type="submit"],
+.eof .eof__panel button[type="submit"],
+.eof a.eof-pay-button,
+.eof button.eof-pay-button {
+  background-color: var(--eof-button);
+  background-image: none;
+  color: var(--eof-button-text);
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 0 16px;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  box-shadow: 0 30px 50px -25px rgba(0, 0, 0, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+
+.eof a.eof-pay-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.eof a.eof-pay-button[hidden] { display: none; }
+
+.eof .eof__panel form .hs-button:hover,
+.eof .eof__panel form input[type="submit"]:hover,
+.eof .eof__panel button[type="submit"]:hover,
+.eof a.eof-pay-button:hover,
+.eof button.eof-pay-button:hover {
+  background-color: var(--eof-button-hover);
+  background-image: none;
+  color: var(--eof-button-text);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 600px) {
+  .eof .eof__panel,
+  .eof .eof__checkout { padding: 20px 16px; }
+}

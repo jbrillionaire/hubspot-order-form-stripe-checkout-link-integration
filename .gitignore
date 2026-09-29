@@ -1,0 +1,15 @@
+# .gitignore -- HubSpot + Stripe order form with UTM attribution
+# Author: Jibril Sulaiman · Created: 2026-09-28
+# Why: this repo is public. Keys and exports (which hold buyer emails) must
+# never reach history. Once pushed, a secret is compromised.
+
+node_modules/
+.env
+.env.*
+*.token
+*secret*.json
+*.csv
+*.xlsx
+*.log
+.DS_Store
+Thumbs.db

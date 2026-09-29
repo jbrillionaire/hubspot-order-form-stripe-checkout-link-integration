@@ -1,0 +1,204 @@
+<script>
+/*
+  ============================================================================
+  utm-capture.html -- sitewide campaign attribution capture
+  ============================================================================
+  Author:   Jibril Sulaiman
+  Created:  2026-09-28 (from a production build first shipped 2026-09-04)
+  Deploy:   HubSpot > Settings > Content > Pages > Site header HTML.
+            Apply it to EVERY domain you serve pages on, not just the default.
+            A domain with its own header override silently keeps the old
+            behaviour, and crossing subdomains is the whole point.
+            Set COOKIE_DOMAIN below first. It must match the Order Form module.
+
+  WHAT IT DOES
+  ----------------------------------------------------------------------------
+  Runs on every page and keeps two first-party cookies on COOKIE_DOMAIN:
+
+    site_attr   90 days. The campaign stash: every utm_*, hsa_* and known ad
+                click id (gclid, fbclid, ttclid, ...) from the URL of the last
+                TAGGED page view.
+    site_entry  30 minutes. Which platform this visit came from (click id or
+                external referrer), even when the landing URL carried no UTMs.
+
+  The Order Form (Stripe) module reads site_attr on the order page and appends
+  the values to the Stripe Payment Link, so they reach the payment record.
+
+  WHY IT EXISTS
+  ----------------------------------------------------------------------------
+  Paid traffic lands on a landing page carrying UTMs, fills in a form, and
+  reaches the order page with a clean URL: HubSpot form redirects rebuild the
+  URL and drop the query string. The order page alone can't see the campaign.
+  Capturing on every page means the first page of the visit records it.
+
+  WHY A COOKIE AND NOT sessionStorage
+  ----------------------------------------------------------------------------
+  sessionStorage is per ORIGIN and per tab. www.example.com and
+  offer.example.com don't share it, and it's gone when the buyer comes back
+  later in a new tab. A cookie on .example.com is shared by every subdomain.
+
+  WRITE RULES (the order module follows the same rules; change both together)
+  ----------------------------------------------------------------------------
+  1. Only a page view that carries campaign params writes. Browsing untagged
+     pages never erases the attribution captured on arrival.
+  2. A new tagged view REPLACES the stash; it never merges. Merging would pair
+     campaign A's utm_source with campaign B's click id: an attribution for a
+     visit that never happened.
+  3. A view whose params ALL equal what's stored is a repeat, not a new touch.
+     This is the return trip from Stripe: after payment the buyer lands on your
+     confirmation page carrying only the five UTMs Stripe passes through. Without
+     this rule that subset would replace the full stash and erase its click ids.
+
+  utm_medium INFERENCE
+  ----------------------------------------------------------------------------
+  When a link carries a source but no medium (?utm_source=partner-a), utm_medium
+  is filled with the platform: click id first (survives in-app browsers, which
+  often send no referrer), then an external referrer, then the site_entry cookie
+  from earlier in this visit, else 'direct'. An explicit utm_medium always wins.
+
+  EXPORTS
+  ----------------------------------------------------------------------------
+  window.SiteAttr.platform() -- for a client-side vanity-link redirect module
+  that wants to stamp utm_medium onto its destination URL. The redirect page is
+  the only page load that still sees the real referrer. Unused otherwise.
+
+  LIMITS
+  ----------------------------------------------------------------------------
+  - Cookies can't cross registrable domains (example.com -> othersite.com).
+    Forward the params in the URL for those hops.
+  - If you add a consent banner that gates non-essential cookies, put this
+    write behind it.
+  - Organic taps inside the Instagram and TikTok apps often send neither a
+    referrer nor a click id. They land unattributed. That's the honest ceiling.
+
+  VERIFY
+  ----------------------------------------------------------------------------
+  1. Open https://www.example.com/any-page?utm_source=test&utm_campaign=proof
+  2. Browse to the order page. In the console: document.cookie contains site_attr.
+  3. After submitting the order form, the Stripe URL carries utm_source=test.
+  ============================================================================
+*/
+(function () {
+  var COOKIE_DOMAIN = '.example.com';   // <-- your registrable domain, with the leading dot
+  var COOKIE = 'site_attr';
+  var MAX_AGE = 90 * 24 * 60 * 60;
+  var ENTRY_COOKIE = 'site_entry';
+  var ENTRY_MAX_AGE = 30 * 60;
+
+  var CLICK_IDS = [
+    'gclid', 'wbraid', 'gbraid', 'fbclid', 'msclkid', 'ttclid',
+    'twclid', 'li_fat_id', 'irclickid', 'epik', 'sccid', 'rdt_cid'
+  ];
+
+  var CLICK_ID_PLATFORM = {
+    fbclid: 'meta', gclid: 'google', wbraid: 'google', gbraid: 'google',
+    ttclid: 'tiktok', msclkid: 'bing', li_fat_id: 'linkedin',
+    epik: 'pinterest', rdt_cid: 'reddit', sccid: 'snapchat', twclid: 'x'
+  };
+
+  var REFERRER_PLATFORM = [
+    [/(^|\.)instagram\.com$/, 'instagram'],
+    [/(^|\.)facebook\.com$|(^|\.)fb\.me$/, 'facebook'],
+    [/(^|\.)tiktok\.com$/, 'tiktok'],
+    [/(^|\.)youtube\.com$|(^|\.)youtu\.be$/, 'youtube'],
+    [/(^|\.)linkedin\.com$|(^|\.)lnkd\.in$/, 'linkedin'],
+    [/(^|\.)t\.co$|(^|\.)twitter\.com$|(^|\.)x\.com$/, 'x'],
+    [/(^|\.)pinterest\.[a-z.]+$/, 'pinterest'],
+    [/(^|\.)reddit\.com$/, 'reddit'],
+    [/(^|\.)threads\.(net|com)$/, 'threads'],
+    [/(^|\.)snapchat\.com$/, 'snapchat'],
+    [/(^|\.)mail\.google\.com$|(^|\.)outlook\.[a-z.]+$|(^|\.)mail\.yahoo\.com$/, 'email'],
+    [/(^|\.)google\.[a-z.]+$/, 'google'],
+    [/(^|\.)bing\.com$/, 'bing']
+  ];
+
+  var OWN_HOST = new RegExp('(^|\\.)' + COOKIE_DOMAIN.replace(/^\./, '').replace(/\./g, '\\.') + '$');
+
+  function isTracking(key) {
+    var k = String(key).toLowerCase();
+    return /^utm_/.test(k) || /^hsa_/.test(k) || CLICK_IDS.indexOf(k) !== -1;
+  }
+
+  function readCookie(name) {
+    try {
+      var m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+      return m ? (JSON.parse(decodeURIComponent(m[1])) || {}) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function writeCookie(name, obj, maxAge) {
+    try {
+      document.cookie = name + '=' + encodeURIComponent(JSON.stringify(obj))
+        + ';domain=' + COOKIE_DOMAIN + ';path=/;max-age=' + maxAge + ';samesite=lax'
+        + (location.protocol === 'https:' ? ';secure' : '');
+    } catch (e) {}
+  }
+
+  // Platform from an EXTERNAL referrer only; '' when there isn't one.
+  function platformFromReferrer() {
+    var host = '';
+    try { if (document.referrer) host = new URL(document.referrer).hostname.toLowerCase(); } catch (e) {}
+    if (!host || OWN_HOST.test(host)) return '';   // own domains are internal navigation
+    for (var i = 0; i < REFERRER_PLATFORM.length; i++) {
+      if (REFERRER_PLATFORM[i][0].test(host)) return REFERRER_PLATFORM[i][1];
+    }
+    return host;   // an unmapped referrer is more useful named than as 'direct'
+  }
+
+  function platformFromClickIds(params) {
+    for (var id in CLICK_ID_PLATFORM) if (params[id]) return CLICK_ID_PLATFORM[id];
+    return '';
+  }
+
+  function inferPlatform(params) {
+    var p = platformFromClickIds(params) || platformFromReferrer();
+    if (p) return p;
+    var entry = readCookie(ENTRY_COOKIE);
+    if (entry.p && Date.now() - Date.parse(entry.t) < ENTRY_MAX_AGE * 1000) return entry.p;
+    return 'direct';
+  }
+
+  // Rule 3: every incoming param already equals the stored one.
+  function isRepeatOf(fresh, stored) {
+    var keys = Object.keys(fresh);
+    if (!keys.length) return false;
+    for (var i = 0; i < keys.length; i++) if (stored[keys[i]] !== fresh[keys[i]]) return false;
+    return true;
+  }
+
+  var fresh = {};
+  try {
+    new URL(window.location.href).searchParams.forEach(function (value, key) {
+      if (value && isTracking(key)) fresh[key] = value;
+    });
+  } catch (e) {}
+
+  // Entry platform on EVERY externally referred view, tagged or not: a vanity
+  // redirect page carries no UTMs but is the only page that sees the referrer.
+  var entryPlatform = platformFromClickIds(fresh) || platformFromReferrer();
+  if (entryPlatform) {
+    writeCookie(ENTRY_COOKIE, { p: entryPlatform, t: new Date().toISOString() }, ENTRY_MAX_AGE);
+  }
+
+  window.SiteAttr = {
+    platform: function () { return inferPlatform(fresh); },
+    entryPlatform: entryPlatform
+  };
+
+  if (Object.keys(fresh).length === 0) return;             // rule 1
+  if (isRepeatOf(fresh, readCookie(COOKIE))) return;       // rule 3
+
+  if (fresh.utm_source && !fresh.utm_medium) {
+    fresh.utm_medium = inferPlatform(fresh);
+    fresh._inferred = 'utm_medium';
+  }
+  // Underscore keys are local audit metadata. The order module never sends them to Stripe.
+  try { if (document.referrer) fresh._ref = document.referrer.slice(0, 300); } catch (e) {}
+  fresh._lp = (location.origin + location.pathname).slice(0, 300);
+  fresh._t = new Date().toISOString();
+
+  writeCookie(COOKIE, fresh, MAX_AGE);                     // rule 2: replace, never merge
+})();
+</script>

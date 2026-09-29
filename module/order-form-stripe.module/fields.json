@@ -1,0 +1,66 @@
+[
+  {
+    "name": "step_form",
+    "label": "Form (step 1)",
+    "type": "form",
+    "help_text": "The HubSpot form buyers fill in before paying. Its email field is passed to Stripe as prefilled_email.",
+    "required": true
+  },
+  {
+    "name": "tab_1_label",
+    "label": "Step 1 tab label",
+    "type": "text",
+    "default": "YOUR INFO"
+  },
+  {
+    "name": "tab_2_label",
+    "label": "Step 2 tab label",
+    "type": "text",
+    "default": "CHECKOUT"
+  },
+  {
+    "name": "stripe_link",
+    "label": "Stripe Link",
+    "type": "text",
+    "help_text": "The live Stripe Payment Link (https://buy.stripe.com/... or your custom checkout domain). Its confirmation behavior must be 'redirect' or no UTMs are captured.",
+    "default": ""
+  },
+  {
+    "name": "button_label",
+    "label": "Submit button label",
+    "type": "text",
+    "help_text": "Replaces the form's own submit text. Also used on the fallback pay button.",
+    "default": "Continue to Payment"
+  },
+  {
+    "name": "prefill_email",
+    "label": "Prefill email on Stripe",
+    "type": "boolean",
+    "help_text": "Adds prefilled_email to the Stripe link so the payment matches the HubSpot contact. Stripe shows a prefilled email read-only.",
+    "default": true,
+    "display": "toggle"
+  },
+  {
+    "name": "open_new_tab",
+    "label": "Open checkout in a new tab",
+    "type": "boolean",
+    "help_text": "Usually leave off: the redirect runs after an async submit, so browsers often block the new tab (the module then falls back to the same tab).",
+    "default": false,
+    "display": "toggle"
+  },
+  {
+    "name": "test_mode",
+    "label": "Test mode",
+    "type": "boolean",
+    "help_text": "Uses Test Stripe Link and shows a TEST MODE banner to everyone. Never falls back to the live link.",
+    "default": false,
+    "display": "toggle"
+  },
+  {
+    "name": "test_stripe_link",
+    "label": "Test Stripe Link",
+    "type": "text",
+    "help_text": "Stripe test-mode payment link. Only used when Test mode is on.",
+    "default": ""
+  }
+]

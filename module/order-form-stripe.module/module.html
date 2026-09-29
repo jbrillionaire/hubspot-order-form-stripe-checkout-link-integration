@@ -1,0 +1,73 @@
+{#
+  module.html -- Order Form (Stripe)
+  ----------------------------------------------------------------------------
+  Author:  Jibril Sulaiman
+  Created: 2026-09-28 (from a production build first shipped 2026-09-04)
+  Deploy:  HubSpot Design Manager > your "Order Form (Stripe)" module > module.html.
+           Fields: see fields.json (or FIELDS.md to create them by hand).
+
+  What: renders step 1 (the HubSpot form chosen in `step_form`) and step 2
+  (the redirect to the Stripe Payment Link). module.js does the redirect.
+
+  Why the test-mode rules: with Test mode on, checkout uses `test_stripe_link`
+  and NEVER falls back to the live link. If the test link is empty, checkout
+  is disabled and an editor-facing warning shows instead. A test page must not
+  be able to take a real payment. The amber banner shows to every visitor on
+  purpose, so a page published with Test mode on is noticed immediately.
+
+  HubL comments like this one never reach the browser.
+#}
+{% set live_url = module.stripe_link|trim %}
+{% set test_url = module.test_stripe_link|trim %}
+{% set is_test  = module.test_mode %}
+
+{% if is_test %}
+  {% set base_url = test_url %}
+{% else %}
+  {% set base_url = live_url %}
+{% endif %}
+
+<div class="eof{% if is_test %} eof--test{% endif %}" id="eof-{{ name }}"
+     data-stripe-url="{{ base_url|escape }}"
+     data-test-mode="{{ is_test }}"
+     data-prefill="{{ module.prefill_email }}"
+     data-new-tab="{{ module.open_new_tab }}"
+     data-button-label="{{ module.button_label|default('Continue to Payment', true)|escape }}">
+
+  {% if is_test %}
+  <div class="eof__test">
+    <strong>TEST MODE</strong> &mdash; this form points at a Stripe <em>test</em> payment link.
+    No real payment will be taken. Turn Test mode off before publishing.
+  </div>
+  {% endif %}
+
+  <div class="eof__tabs">
+    <div class="eof__tab eof__tab--current" data-step="1">{{ module.tab_1_label }}</div>
+    <div class="eof__tab eof__tab--locked" data-step="2">{{ module.tab_2_label }}</div>
+  </div>
+
+  <div class="eof__panel">
+    {% form form_to_use="{{ module.step_form.form_id }}", response_type="inline", message="" %}
+  </div>
+
+  <div class="eof__checkout">
+    {% if base_url %}
+      <div class="eof__redirect">Redirecting you to secure checkout&hellip;</div>
+      <a class="eof-pay-button" href="{{ base_url|escape }}" rel="noopener" hidden>
+        {{ module.button_label|default('Continue to Payment', true) }}
+      </a>
+    {% else %}
+      <div class="eof__warn">
+        {% if is_test %}
+          <strong>Test mode is on but no test link is set.</strong>
+          Paste a Stripe <em>test</em> payment link into <em>Test Stripe Link</em>,
+          or turn Test mode off. Checkout is disabled &mdash; it will not fall back to the live link.
+        {% else %}
+          <strong>No Stripe payment link set.</strong>
+          Open this module's settings and paste the Stripe Payment Link URL into
+          <em>Stripe Link</em>. Checkout will not work until you do.
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
