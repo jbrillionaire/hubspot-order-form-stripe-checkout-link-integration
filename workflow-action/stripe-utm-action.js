@@ -40,7 +40,7 @@
 const OBJECT_TYPE = '2-00000000';                 // object type id of the payment records this workflow runs on
 const PI_PROPERTY = 'stripe_payment_intent_id';   // property holding the pi_... id (workflow input)
 const TOKEN_SECRET_NAME = 'PAYMENT_UTM_WRITE_TOKEN';  // secret: HubSpot service key/private app token with write on OBJECT_TYPE
-const STRIPE_SECRET_NAME = 'STRIPE_READ_KEY';         // secret: Stripe live restricted key, Checkout Sessions: read
+const STRIPE_SECRET_NAME = 'STRIPE_READ_KEY';         // secret: Stripe live restricted key, Checkout Sessions: read + Promotion Codes: read
 // Properties written (create them with scripts/create-properties.mjs).
 const UTM_PREFIX = 'stripe_';                     // utm_source in the URL -> stripe_utm_source on the record
 const PROMO_PROPERTY = 'redeemed_promo_code';
@@ -79,7 +79,7 @@ function getToken() {
 
 function getStripeKey() {
   const value = (process.env[STRIPE_SECRET_NAME] || '').trim();
-  if (!value) throw new Error(`No secret named ${STRIPE_SECRET_NAME}. Add a live restricted key with Checkout Sessions: read.`);
+  if (!value) throw new Error(`No secret named ${STRIPE_SECRET_NAME}. Add a live restricted key with Checkout Sessions: read and Promotion Codes: read.`);
   // A test key authenticates, then 404s on every live session: that reads as
   // "no attribution found" rather than a bad secret, so refuse it up front.
   if (!/^(sk|rk)_live_/.test(value)) {
