@@ -38,7 +38,7 @@ was built for (Aug–Sep 2026), that meant:
 | Apple Pay | Didn't render. The checkout is served from HubSpot's domain, which you can't register with Stripe for Apple Pay, inside a cross-origin overlay. | Works on your own checkout domain once registered with Stripe |
 | Email from the form | Not carried into checkout for new visitors | `prefilled_email` on the link |
 | Order bump / add-on | Needed two payment links, two payment modules and a checkbox to switch between them | Built in: an optional "Add to your order" item |
-| Promo codes, quantities, custom domain | Limited to HubSpot's checkout options | Stripe's full Payment Link settings |
+| Order summary and coupon field | Only inside the overlay, not beside the form | On Stripe's checkout page, with Stripe's promotion codes |
 
 Capabilities change, so check your own portal. But if any of these matter to you,
 the answer is to take payment on Stripe and keep HubSpot for the CRM.
