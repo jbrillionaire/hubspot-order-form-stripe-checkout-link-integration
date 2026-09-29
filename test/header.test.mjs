@@ -40,6 +40,12 @@ test('the return trip from Stripe (a subset of the same UTMs) keeps the full sta
   assert.deepEqual(dec(jar, 'site_attr'), stored);
 });
 
+test('the return trip keeps the stash even when Stripe hands back CLEANED values', () => {
+  const stored = { utm_source: 'fb', utm_campaign: 'Brand | Sep 2026 | Prospecting', fbclid: 'F1', gclid: 'G1' };
+  const { jar } = run({ url: 'https://www.example.com/thank-you?utm_source=fb&utm_campaign=Brand-Sep-2026-Prospecting', cookies: { site_attr: enc(stored) } });
+  assert.deepEqual(dec(jar, 'site_attr'), stored);
+});
+
 test('utm_medium is inferred when a link has a source but no medium', () => {
   const byClick = dec(run({ url: 'https://www.example.com/?utm_source=partner-a&fbclid=F1' }).jar, 'site_attr');
   assert.equal(byClick.utm_medium, 'meta');

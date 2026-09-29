@@ -91,6 +91,17 @@
     return out;
   }
 
+  // Stripe hands back the CLEANED value (Brand-Sep-2026) for a stored raw one
+  // (Brand | Sep 2026), so equal-after-cleaning counts as the same value.
+  function sameValue(a, b) {
+    if (a === b) return true;
+    var clean = function (v) {
+      return String(v == null ? '' : v).replace(/[^A-Za-z0-9_-]+/g, '-')
+        .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '').slice(0, 150);
+    };
+    return a != null && b != null && clean(a) !== '' && clean(a) === clean(b);
+  }
+
   // Tracking params on this page's own URL win; otherwise the stash from earlier
   // in the visit. Never a blend of the two (same rule as the header script).
   // Reading only: the header script is the one writer of the cookie.
@@ -101,7 +112,7 @@
     if (!keys.length) return stored;
     // A URL that only repeats what's stored (e.g. a redirect forwarded utm_source)
     // is the same touch: keep the full stash, click ids included.
-    for (var i = 0; i < keys.length; i++) if (stored[keys[i]] !== onPage[keys[i]]) return onPage;
+    for (var i = 0; i < keys.length; i++) if (!sameValue(stored[keys[i]], onPage[keys[i]])) return onPage;
     return stored;
   }
 

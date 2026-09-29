@@ -160,11 +160,22 @@
     return 'direct';
   }
 
+  // Stripe hands back the CLEANED value (Brand-Sep-2026) for a stored raw one
+  // (Brand | Sep 2026), so equal-after-cleaning counts as the same value.
+  function sameValue(a, b) {
+    if (a === b) return true;
+    var clean = function (v) {
+      return String(v == null ? '' : v).replace(/[^A-Za-z0-9_-]+/g, '-')
+        .replace(/-{2,}/g, '-').replace(/^-+|-+$/g, '').slice(0, 150);
+    };
+    return a != null && b != null && clean(a) !== '' && clean(a) === clean(b);
+  }
+
   // Rule 3: every incoming param already equals the stored one.
   function isRepeatOf(fresh, stored) {
     var keys = Object.keys(fresh);
     if (!keys.length) return false;
-    for (var i = 0; i < keys.length; i++) if (stored[keys[i]] !== fresh[keys[i]]) return false;
+    for (var i = 0; i < keys.length; i++) if (!sameValue(stored[keys[i]], fresh[keys[i]])) return false;
     return true;
   }
 

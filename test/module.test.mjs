@@ -69,6 +69,14 @@ test('an order URL that only repeats stored values keeps the full stash, click i
   assert.equal(params.get('utm_campaign'), 'fall');
 });
 
+test('an order URL carrying the cleaned form of a stored value is still the same touch', () => {
+  const { params } = submitAndGo({
+    url: 'https://shop.example.com/order?utm_campaign=Brand-Fall',
+    cookies: { site_attr: enc({ utm_campaign: 'Brand | Fall', gclid: 'G1' }) },
+  });
+  assert.equal(params.get('gclid'), 'G1');
+});
+
 test('no email is sent when prefill is off', () => {
   const { params } = submitAndGo({ attrs: { ...ATTRS, 'data-prefill': 'false' } });
   assert.equal(params.get('prefilled_email'), null);
