@@ -1,5 +1,5 @@
 {
-  "name": "hubspot-stripe-order-form-utm",
+  "name": "hubspot-order-form-stripe-checkout-link-integration",
   "version": "1.0.0",
   "private": true,
   "type": "module",
