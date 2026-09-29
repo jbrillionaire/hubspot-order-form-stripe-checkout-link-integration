@@ -1,5 +1,5 @@
 <!--
-  README.md -- HubSpot + Stripe order form with UTM attribution
+  README.md -- HubSpot order form + Stripe checkout link integration
   Author:  Jibril Sulaiman
   Created: 2026-09-28 (from a production build first shipped 2026-09-04)
   What:    What this is for, how it works, and every setup step with a check.
@@ -8,21 +8,43 @@
            capture anything, and reports just show "no source".
 -->
 
-# HubSpot + Stripe order form with UTM attribution
+# HubSpot order form + Stripe checkout link integration
 
-Sell through **Stripe Payment Links** from a **HubSpot** page, and still know which
+A **two-step order form for HubSpot pages** that hands buyers to a **Stripe
+Payment Link** instead of HubSpot's own checkout, and still records which
 campaign made each sale.
 
-A buyer fills in a short HubSpot form (step 1) and is sent straight to your Stripe
-Payment Link (step 2) with their email prefilled and the campaign that brought
-them attached. After they pay, a HubSpot workflow reads that campaign back from
-Stripe and writes it onto the payment record, next to the amount.
+Step 1 is a normal HubSpot form, so every buyer becomes a contact before they pay.
+Step 2 sends them straight to your Stripe Payment Link with their email prefilled
+and their campaign attached. After they pay, a HubSpot workflow reads that
+campaign back from Stripe and writes it onto the payment record, next to the amount.
 
 ## Why it exists
 
-Stripe Payment Links are the quickest way to take money: Apple Pay, Google Pay,
-Klarna, promo codes and order bumps with no checkout to build. But the moment a
-buyer leaves your site for Stripe, attribution falls apart:
+**HubSpot has no native order form.** A form and a payment are separate things in
+HubSpot: you place a form module and a payment button on a page and hope buyers
+use both. There's no step 1 "your details", step 2 "pay" flow, no order summary or
+coupon field inline with the form, and nothing that moves the buyer from one to
+the other.
+
+**HubSpot's native Stripe checkout holds back much of what Stripe can do.** With
+Stripe connected as HubSpot's payment processor, checkout runs on HubSpot's own
+payment domain, in a sliding overlay, not on Stripe's checkout. In the portal this
+was built for (Aug–Sep 2026), that meant:
+
+| | HubSpot checkout (Stripe as processor) | Stripe Payment Link |
+|---|---|---|
+| Payment methods offered | Card and US bank account | Everything enabled in Stripe: Apple Pay, Google Pay, Klarna, Afterpay, Cash App, Link... |
+| Apple Pay | Didn't render. The checkout is served from HubSpot's domain, which you can't register with Stripe for Apple Pay, inside a cross-origin overlay. | Works on your own checkout domain once registered with Stripe |
+| Email from the form | Not carried into checkout for new visitors | `prefilled_email` on the link |
+| Order bump / add-on | Needed two payment links, two payment modules and a checkbox to switch between them | Built in: an optional "Add to your order" item |
+| Promo codes, quantities, custom domain | Limited to HubSpot's checkout options | Stripe's full Payment Link settings |
+
+Capabilities change, so check your own portal. But if any of these matter to you,
+the answer is to take payment on Stripe and keep HubSpot for the CRM.
+
+**Moving checkout to Stripe breaks attribution, though.** The moment a buyer leaves
+your site for Stripe:
 
 - **The campaign is gone before checkout.** Ads land on a landing page with UTMs
   in the URL. HubSpot form redirects rebuild the URL and drop them, so the order
@@ -31,12 +53,19 @@ buyer leaves your site for Stripe, attribution falls apart:
   Session and none in the payment webhook. And Stripe **silently drops** any UTM
   value that isn't plain letters, digits, `-` or `_`. That's most ad-platform
   campaign names ("Brand | Fall | Prospecting").
-- **The payment and the contact drift apart.** Without the buyer's email on the
-  link, the Stripe payment doesn't match the HubSpot contact who just filled in
-  the form.
+- **HubSpot's commerce reports don't see it.** Payments taken on Stripe aren't
+  HubSpot payments, so the source has to be written onto whatever record your
+  Stripe payments sync into.
+- **The payment and the contact drift apart** unless the buyer's email travels
+  with the link.
 
-The result is revenue reports where most sales say "no source". This repo fixes
-each break.
+This repo is the whole bridge: the order form, the capture that survives the
+redirects, and the workflow that puts the campaign on the payment.
+
+**What you give up:** HubSpot's native payment records, commerce reporting and
+payment-based workflows (like HubSpot's abandoned-cart flows). Step 1 still
+creates the contact before checkout, so you can build abandoned-checkout
+follow-up on "submitted the order form but no payment".
 
 ## How it works
 
