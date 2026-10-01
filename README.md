@@ -257,6 +257,8 @@ $env:STRIPE_LIVE_KEY = "rk_live_..."     # the key from 2a
 node scripts/audit-payment-links.mjs
 ```
 
+Runs [`scripts/audit-payment-links.mjs`](scripts/audit-payment-links.mjs).
+
 Add `--all` to include inactive links. The script refuses to run with a test key
 (`Refusing to run: STRIPE_LIVE_KEY is not a live key`), because test mode has
 different links.
@@ -312,7 +314,7 @@ first-party cookie the moment the buyer lands.
    domain **with the leading dot**, e.g. `'.example.com'` for
    `www.example.com`, `offer.example.com` and so on.
 3. Leave `var COOKIE = 'site_attr';` as it is. The module reads the same name in
-   Step 4. If you change it here, change `COOKIE_NAME` in `module.js` to match.
+   Step 4. If you change it here, change `COOKIE_NAME` in [`module.js`](module/order-form-stripe.module/module.js) to match.
 4. Save the file.
 
 **3b. Open the site header setting.**
@@ -486,7 +488,7 @@ hs init                                   # first time only: connects the CLI to
 hs upload module/order-form-stripe.module order-form-stripe.module
 ```
 
-That uploads all five files, including `fields.json` (the nine fields) and
+That uploads all five files, including [`fields.json`](module/order-form-stripe.module/fields.json) (the nine fields) and
 `meta.json` (label, content types and inline help text). Then open **Content** >
 **Design Manager**, find **order-form-stripe.module**, and check the nine fields
 are there.
@@ -651,7 +653,7 @@ node scripts/verify-properties.mjs
   existing properties are skipped, and an existing dropdown only gets its
   **missing** options added. Add `--prune` to also remove options that aren't in
   the list.
-- `verify-properties.mjs` prints `ok` or `FAIL` per property, a list of
+- [`verify-properties.mjs`](scripts/verify-properties.mjs) prints `ok` or `FAIL` per property, a list of
   **Similar names** if it spots near-misses, and ends with **All good.** or
   **FAILED: fix the names above before building the workflow.**
 
@@ -668,7 +670,7 @@ manually**:
 4. Pick your group, then **Create**.
 
 Then run `verify-properties.mjs` from 6c anyway. **Don't** run
-`create-properties.mjs` over properties you made by hand until verify passes: if
+[`create-properties.mjs`](scripts/create-properties.mjs) over properties you made by hand until verify passes: if
 a hand-made internal name differs, the script creates a second property instead
 of telling you.
 
@@ -876,7 +878,7 @@ If the log shows an error instead:
 | `No secret named PAYMENT_UTM_WRITE_TOKEN` / `STRIPE_READ_KEY` | The secret isn't attached as a chip, or its name differs (7d.3) |
 | `... is not a live Stripe key` | Use the `rk_live_` key (7a.2) |
 | `-> 401` or `-> 403. Check the credential and its scopes.` | HubSpot key missing `crm.objects.custom.write`, or Stripe key missing **Checkout Sessions: Read** or **Promotion Codes: Read** |
-| `PATCH ... -> 400` | A property name or dropdown value doesn't exist. Run `verify-properties.mjs` (Step 6c). |
+| `PATCH ... -> 400` | A property name or dropdown value doesn't exist. Run [`verify-properties.mjs`](scripts/verify-properties.mjs) (Step 6c). |
 
 A real UTM result needs a paid sale through a link that was tagged at the time.
 If none of your existing records has one, you'll see `ids_only_no_attribution` or
@@ -1070,11 +1072,11 @@ Workflow log statuses:
 |---|---|---|
 | Most payments have no source | Header script missing on some domains, or the order page is reached through a domain that isn't covered | Step 3, every domain |
 | `utm_campaign` missing but `utm_source` present | The value had spaces or pipes and the module isn't the one on the page | Check the page uses this module (view source for `eof`) |
-| Every sale through a link shows the same source | UTMs hard-coded on the link's redirect URL | `audit-payment-links.mjs` HARD-CODED list |
+| Every sale through a link shows the same source | UTMs hard-coded on the link's redirect URL | [`audit-payment-links.mjs`](scripts/audit-payment-links.mjs) HARD-CODED list |
 | Form submits but nothing happens | Form set to redirect instead of inline, or Stripe Link empty | Step 5 |
 | Stuck on "Redirecting you to secure checkout..." | Navigation blocked | The module shows a pay button after 3 s; check for a popup blocker if **Open in new tab** is on |
 | Payment not linked to the contact | `prefill_email` off, or the payment never completed | Turn prefill on. Stripe only creates the customer, and most syncs only link the contact, once a payment **succeeds**. |
-| Workflow error `... -> 400` on PATCH | A property name or dropdown value doesn't exist | `verify-properties.mjs` |
+| Workflow error `... -> 400` on PATCH | A property name or dropdown value doesn't exist | [`verify-properties.mjs`](scripts/verify-properties.mjs) |
 | Workflow error `not a live Stripe key` | Test key in `STRIPE_READ_KEY` | Use a live restricted key |
 | Workflow `-> 401/403` | Token scopes | Step 7a |
 | Values on the record look truncated at 150 | Stripe's limit | Shorten campaign names at the source |
