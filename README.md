@@ -97,13 +97,13 @@ follow-up on "submitted the order form but no payment".
 
 | Path | What it is | Where it goes |
 |---|---|---|
-| `site-header/utm-capture.html` | Captures UTMs and click ids on every page | HubSpot **Site header HTML**, all domains |
-| `module/order-form-stripe.module/` | The two-step order form (`module.html`, `module.css`, `module.js`, `fields.json`, `meta.json`) | HubSpot **Design Manager** module |
-| `workflow-action/stripe-utm-action.js` | Writes the UTMs onto the payment record | HubSpot **workflow custom code** action |
-| `scripts/audit-payment-links.mjs` | Lists which Stripe links can capture UTMs, and builds tagged URLs | Run locally (read-only) |
-| `scripts/create-properties.mjs` | Creates the properties the action writes | Run locally, once |
-| `scripts/verify-properties.mjs` | Confirms internal names and dropdown values match | Run locally |
-| `test/` | 30 tests; the browser scripts run unchanged against a fake page | `npm test` |
+| [`site-header/utm-capture.html`](site-header/utm-capture.html) | Captures UTMs and click ids on every page | HubSpot **Site header HTML**, all domains |
+| [`module/order-form-stripe.module/`](module/order-form-stripe.module/) | The two-step order form: [`module.html`](module/order-form-stripe.module/module.html) · [`module.css`](module/order-form-stripe.module/module.css) · [`module.js`](module/order-form-stripe.module/module.js) · [`fields.json`](module/order-form-stripe.module/fields.json) · [`meta.json`](module/order-form-stripe.module/meta.json) | HubSpot **Design Manager** module |
+| [`workflow-action/stripe-utm-action.js`](workflow-action/stripe-utm-action.js) | Writes the UTMs onto the payment record | HubSpot **workflow custom code** action |
+| [`scripts/audit-payment-links.mjs`](scripts/audit-payment-links.mjs) | Lists which Stripe links can capture UTMs, and builds tagged URLs | Run locally (read-only) |
+| [`scripts/create-properties.mjs`](scripts/create-properties.mjs) | Creates the properties the action writes | Run locally, once |
+| [`scripts/verify-properties.mjs`](scripts/verify-properties.mjs) | Confirms internal names and dropdown values match | Run locally |
+| [`test/`](test/) | 30 tests; the browser scripts run unchanged against a fake page | `npm test` |
 
 Zero dependencies. Node 20+ for the scripts and tests.
 
@@ -307,7 +307,7 @@ sees the campaign. This script runs on every page and saves the campaign in a
 first-party cookie the moment the buyer lands.
 
 **3a. Set your domain in the file.**
-1. Open `site-header/utm-capture.html` in a text editor.
+1. Open [`site-header/utm-capture.html`](site-header/utm-capture.html) in a text editor.
 2. Find `var COOKIE_DOMAIN = '.example.com';` and change it to your registrable
    domain **with the leading dot**, e.g. `'.example.com'` for
    `www.example.com`, `offer.example.com` and so on.
@@ -381,7 +381,7 @@ If it's empty, check in this order:
 
 *About 20 minutes by hand, 5 with the CLI.*
 
-Before either path: open `module/order-form-stripe.module/module.js` and check
+Before either path: open [`module/order-form-stripe.module/module.js`](module/order-form-stripe.module/module.js) and check
 that `var COOKIE_NAME = 'site_attr';` matches the `COOKIE` name in the header
 script (Step 3a).
 
@@ -412,9 +412,9 @@ select everything and delete the sample code, then paste in the **whole** file:
 
 | Pane | Paste all of |
 |---|---|
-| **module.html (HTML + HubL)** | `module/order-form-stripe.module/module.html` |
-| **module.css** | `module/order-form-stripe.module/module.css` |
-| **module.js** | `module/order-form-stripe.module/module.js` |
+| **module.html (HTML + HubL)** | [`module/order-form-stripe.module/module.html`](module/order-form-stripe.module/module.html) |
+| **module.css** | [`module/order-form-stripe.module/module.css`](module/order-form-stripe.module/module.css) |
+| **module.js** | [`module/order-form-stripe.module/module.js`](module/order-form-stripe.module/module.js) |
 
 The status bar at the bottom left should read **No errors found**.
 
@@ -776,7 +776,7 @@ onto the record together with the promo code, session id and link id.
    > Stripe key"* instead.
 
 4. **Code:** delete the sample code and paste in **all** of
-   `workflow-action/stripe-utm-action.js` (the **Full screen** button makes this
+   [`workflow-action/stripe-utm-action.js`](workflow-action/stripe-utm-action.js) (the **Full screen** button makes this
    easier). Then edit the settings block at the top:
 
    | Setting | Set it to |
