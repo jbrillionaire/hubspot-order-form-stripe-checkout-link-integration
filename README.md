@@ -329,8 +329,8 @@ first-party cookie the moment the buyer lands.
 1. Click at the **end** of whatever is already in **Site header HTML** (a Google
    Tag Manager snippet, for example), and add a blank line. Don't delete what's
    there.
-2. Paste the **whole** file: everything from the opening `<script>` to the closing
-   `</script>`.
+2. Paste the **whole** of [`site-header/utm-capture.html`](site-header/utm-capture.html):
+   everything from the opening `<script>` to the closing `</script>`.
 3. Click **Save** at the bottom of the page (the bar reads *"You've changed 1 web
    page setting."*).
 
